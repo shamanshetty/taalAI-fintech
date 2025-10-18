@@ -1,13 +1,32 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Search, Bell, User, Settings, LogOut } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+import { useUserStore } from '@/store/useUserStore'
 
 export function Header() {
+  const router = useRouter()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const user = useUserStore((state) => state.user)
+  const setUser = useUserStore((state) => state.setUser)
+
+  const displayName =
+    user?.full_name?.split(' ')[0] ??
+    (user?.email ? user.email.split('@')[0] : 'there')
+
+  const userEmail = user?.email ?? '—'
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    setIsProfileOpen(false)
+    router.replace('/login')
+  }
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/10 glass backdrop-blur-xl">
@@ -62,8 +81,8 @@ export function Header() {
                 <User className="w-4 h-4 text-white" />
               </div>
               <div className="hidden lg:block text-left">
-                <p className="text-sm font-semibold">Demo User</p>
-                <p className="text-xs text-muted-foreground">Freelancer</p>
+                <p className="text-sm font-semibold capitalize">{displayName}</p>
+                <p className="text-xs text-muted-foreground">{userEmail}</p>
               </div>
             </button>
 
@@ -86,8 +105,8 @@ export function Header() {
                     className="absolute right-0 top-full mt-2 w-56 neuro-card rounded-2xl p-2 z-50"
                   >
                     <div className="px-3 py-2 border-b border-white/10 mb-2">
-                      <p className="text-sm font-semibold">Demo User</p>
-                      <p className="text-xs text-muted-foreground">demo@taalai.com</p>
+                      <p className="text-sm font-semibold capitalize">{displayName}</p>
+                      <p className="text-xs text-muted-foreground">{userEmail}</p>
                     </div>
 
                     <Link href="/settings" onClick={() => setIsProfileOpen(false)}>
@@ -105,7 +124,10 @@ export function Header() {
                     </Link>
 
                     <div className="border-t border-white/10 mt-2 pt-2">
-                      <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-destructive/10 transition-colors text-left text-destructive">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-destructive/10 transition-colors text-left text-destructive"
+                      >
                         <LogOut className="w-4 h-4" />
                         <span className="text-sm">Logout</span>
                       </button>

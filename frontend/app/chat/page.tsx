@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Mic, MicOff } from 'lucide-react'
+import { Send, Mic, MicOff, Sparkles, ChevronRight, Volume2 } from 'lucide-react'
 
 interface Message {
   id: string
@@ -11,19 +11,64 @@ interface Message {
   timestamp: Date
 }
 
+interface QuickPrompt {
+  id: string
+  label: string
+  description: string
+  prefill: string
+}
+
+const QUICK_PROMPTS: QuickPrompt[] = [
+  {
+    id: 'budget',
+    label: 'Tune my monthly budget',
+    description: 'Spot the three biggest leaks in my spending.',
+    prefill: 'Can you review my monthly budget and point out the top three leaks?',
+  },
+  {
+    id: 'tax',
+    label: 'Prep for advance tax',
+    description: 'Estimate how much to set aside this quarter.',
+    prefill: 'Help me estimate how much advance tax I should set aside this quarter given variable income.',
+  },
+  {
+    id: 'savings',
+    label: 'Automate my savings',
+    description: 'Draft SIP amounts so I hit my short term goals.',
+    prefill: 'Design an automated SIP plan so I reach my short term goals without hurting cash flow.',
+  },
+  {
+    id: 'credit',
+    label: 'Improve my credit readiness',
+    description: 'List the steps before applying for a home loan.',
+    prefill: 'What should I do over the next three months to be ready for a home loan application?',
+  },
+]
+
+const VOICE_TIPS = [
+  'Keep the microphone close and speak at a steady pace.',
+  'You can say "pause voice mode" anytime to switch back to typing.',
+  'TaalAI can summarise the reply and send an audio note.',
+]
+
+const getFallbackResponse = (userInput: string) => {
+  const trimmed = userInput.trim()
+  if (!trimmed) {
+    return "I'm syncing data right now. Give me a fuller question and I'll jump back in."
+  }
+  return `I ran into a glitch responding to "${trimmed}". Give me a moment and try again.`
+}
+
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: 'Namaste! 👋 I\'m TaalAI, your financial coach. How can I help you today?',
-      timestamp: new Date(),
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isVoiceMode, setIsVoiceMode] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const showIntro = messages.length === 0 && input.trim().length === 0
+  const quickPrompts = QUICK_PROMPTS
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -48,8 +93,12 @@ export default function ChatPage() {
     setIsLoading(true)
 
     try {
-      // TODO: Call actual API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat/message?user_id=demo`, {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL
+      if (!apiBase) {
+        throw new Error('Chat service not configured. Set NEXT_PUBLIC_API_URL in your environment.')
+      }
+
+      const response = await fetch(`${apiBase}/api/chat/message?user_id=demo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -58,6 +107,12 @@ export default function ChatPage() {
           language: 'hinglish',
         }),
       })
+
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => ({}))
+        const detail = errorPayload?.detail || response.statusText || 'Unknown error'
+        throw new Error(detail)
+      }
 
       const data = await response.json()
 
@@ -70,11 +125,13 @@ export default function ChatPage() {
 
       setMessages((prev) => [...prev, assistantMessage])
     } catch (error) {
-      // Fallback response
+      console.error('Chat request failed', error)
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unexpected error while contacting the coach.'
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'That\'s a great question! Based on your financial profile, I suggest focusing on building your emergency fund first. With your irregular income, having 3-6 months of expenses saved will give you peace of mind. 💪',
+        content: `I couldn't reach the coach just now: ${errorMessage}. Try again in a bit or tweak the question.`,
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, assistantMessage])
@@ -90,13 +147,6 @@ export default function ChatPage() {
     }
   }
 
-  const suggestedQuestions = [
-    'Can I afford to buy a ₹60,000 phone?',
-    'How much should I save each month?',
-    'What are my tax obligations this quarter?',
-    'Help me plan for an emergency fund',
-  ]
-
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8 lg:ml-[280px]">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -104,25 +154,30 @@ export default function ChatPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
         >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold font-grotesk mb-2">
-                <span className="text-gradient-green-gold">Chat with TaalAI</span>
-              </h1>
-              <p className="text-muted-foreground">Your personal financial coach</p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                <Sparkles className="w-3 h-3" />
+                <span>Coach Console</span>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold font-grotesk">Chat with TaalAI</h1>
+              <p className="text-sm text-muted-foreground max-w-xl">Ask your money questions and I will respond with clear steps, trade-offs, and calculators when you need them.</p>
             </div>
             <button
+              type="button"
               onClick={() => setIsVoiceMode(!isVoiceMode)}
-              className={`p-3 rounded-xl transition-all ${
+              aria-pressed={isVoiceMode}
+              aria-label={isVoiceMode ? 'Disable voice mode' : 'Enable voice mode'}
+              className={`p-3 rounded-full border transition-colors ${
                 isVoiceMode
-                  ? 'bg-theme-green text-white'
-                  : 'neuro-card-hover'
+                  ? 'border-theme-green bg-theme-green/20 text-theme-green'
+                  : 'border-white/10 text-muted-foreground hover:border-theme-green/40 hover:text-theme-green'
               }`}
               title={isVoiceMode ? 'Voice mode enabled' : 'Enable voice mode'}
             >
-              {isVoiceMode ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+              {isVoiceMode ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
             </button>
           </div>
         </motion.div>
@@ -132,9 +187,9 @@ export default function ChatPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="neuro-card rounded-3xl p-6 h-[500px] overflow-y-auto"
+          className="neuro-card relative rounded-3xl p-6 h-[500px]"
         >
-          <div className="space-y-4">
+          <div className="h-full overflow-y-auto space-y-4 pr-1">
             <AnimatePresence>
               {messages.map((message) => (
                 <motion.div
@@ -155,6 +210,17 @@ export default function ChatPage() {
                     <p className="text-xs mt-1 opacity-70">
                       {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
+                    {message.role === 'assistant' ? (
+                      <div className="mt-2 flex justify-start">
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center rounded-full border border-white/10 p-1.5 text-muted-foreground transition hover:border-theme-green hover:text-theme-green"
+                          aria-label="Play voice reply"
+                        >
+                          <Volume2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 </motion.div>
               ))}
@@ -177,30 +243,43 @@ export default function ChatPage() {
             )}
             <div ref={messagesEndRef} />
           </div>
+          <AnimatePresence>
+            {showIntro && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 rounded-3xl border border-white/10 bg-background/80 backdrop-blur-sm p-6 flex flex-col justify-center gap-6 text-center pointer-events-auto"
+              >
+                <div className="space-y-2 pointer-events-auto">
+                  <div className="flex justify-center">
+                    <Sparkles className="w-6 h-6 text-theme-green" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Ask a question or pick a prompt to kick things off. The overlay will fade once you start typing.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 gap-3 pointer-events-auto sm:grid-cols-2">
+                  {quickPrompts.map((prompt) => (
+                    <button
+                      key={prompt.id}
+                      onClick={() => setInput(prompt.prefill)}
+                      className="rounded-2xl border border-white/20 bg-background/60 px-4 py-3 text-left text-sm transition hover:border-theme-green hover:text-theme-green"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-semibold">{prompt.label}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{prompt.description}</p>
+                        </div>
+                        <ChevronRight className="w-3 h-3 text-muted-foreground" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
-
-        {/* Suggested Questions (show when no messages) */}
-        {messages.length === 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mb-6"
-          >
-            <p className="text-sm text-muted-foreground mb-3">Try asking:</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {suggestedQuestions.map((question, index) => (
-                <button
-                  key={index}
-                  onClick={() => setInput(question)}
-                  className="p-3 text-left text-sm neuro-card-hover rounded-xl transition-all"
-                >
-                  {question}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
 
         {/* Input */}
         <motion.div
@@ -228,9 +307,16 @@ export default function ChatPage() {
           </div>
 
           {isVoiceMode && (
-            <p className="text-xs text-center text-muted-foreground mt-3">
-              🎤 Voice mode enabled - responses will include audio
-            </p>
+            <div className="mt-4 rounded-xl border border-theme-green/20 bg-theme-green/5 p-4">
+              <p className="text-xs font-semibold text-theme-green">Voice mode guidelines</p>
+              <ul className="mt-2 space-y-1 text-[11px] text-muted-foreground">
+                {VOICE_TIPS.map((tip, index) => (
+                  <li key={index} className="leading-relaxed">
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </motion.div>
       </div>

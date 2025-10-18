@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { MobileNav } from '@/components/layout/MobileNav'
 import { Header } from '@/components/layout/Header'
+import { AuthProvider } from '@/components/providers/AuthProvider'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -50,21 +51,23 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <div className="relative min-h-screen bg-background">
-            {/* Sidebar Navigation */}
-            <Sidebar />
+          <AuthProvider>
+            <div className="relative min-h-screen bg-background">
+              {/* Sidebar Navigation */}
+              <Sidebar />
 
-            {/* Main Content */}
-            <main className="min-h-screen pb-20 lg:pb-0">
-              {/* Header Bar */}
-              <Header />
-              
-              {children}
-            </main>
+              {/* Main Content */}
+              <main className="min-h-screen pb-20 lg:pb-0">
+                {/* Header Bar */}
+                <Header />
+                
+                {children}
+              </main>
 
-            {/* Mobile Bottom Navigation */}
-            <MobileNav />
-          </div>
+              {/* Mobile Bottom Navigation */}
+              <MobileNav />
+            </div>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

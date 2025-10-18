@@ -90,7 +90,7 @@
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #16A34A;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
   }
 }
 
@@ -137,7 +137,7 @@
   }
 
   .gradient-green-gold {
-    background: linear-gradient(135deg, #16A34A 0%, #F59E0B 100%);
+    background: linear-gradient(135deg, rgba(32, 32, 32, 0.9) 0%, rgba(18, 18, 18, 0.6) 100%);
   }
 
   /* Text Gradients */
@@ -152,8 +152,7 @@
   }
 
   .text-gradient-green-gold {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #16A34A 0%, #F59E0B 100%);
+    @apply text-theme-green;
   }
 
   /* Pulse animations for Green & Gold */
@@ -208,7 +207,6 @@
   /* Balance Card */
   .balance-display {
     @apply card-elevated relative overflow-hidden;
-    background: linear-gradient(135deg, rgba(22, 163, 74, 0.05) 0%, rgba(245, 158, 11, 0.05) 100%);
   }
 
   .balance-display::before {
@@ -218,7 +216,7 @@
     right: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(22, 163, 74, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
     animation: rotate-slow 30s linear infinite;
   }
 
@@ -230,7 +228,6 @@
   /* Chart Container */
   .chart-container {
     @apply neuro-card rounded-2xl p-4;
-    background: linear-gradient(135deg, rgba(22, 163, 74, 0.03) 0%, rgba(245, 158, 11, 0.03) 100%);
   }
 
   /* Progress Bar (Neumorphic) */
@@ -242,7 +239,7 @@
 
   .progress-fill {
     @apply h-full rounded-full;
-    background: linear-gradient(90deg, #16A34A 0%, #F59E0B 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
   }
 
   /* Shimmer Effect (Zero-style loading) */
@@ -258,8 +255,8 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(22, 163, 74, 0.1),
-      rgba(245, 158, 11, 0.1),
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.04),
       transparent
     );
     animation: shimmer-slide 2s infinite;
@@ -312,7 +309,7 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, #16A34A, #F59E0B);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;

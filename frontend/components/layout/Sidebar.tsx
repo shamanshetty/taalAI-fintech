@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -21,6 +21,8 @@ import {
   HelpCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
+import { useUserStore } from '@/store/useUserStore'
 
 interface NavItem {
   title: string
@@ -49,7 +51,6 @@ const navItems: NavItem[] = [
     title: 'Chat Coach',
     href: '/chat',
     icon: MessageCircle,
-    badge: 2,
   },
   {
     title: 'What If',
@@ -84,6 +85,24 @@ const bottomNavItems: NavItem[] = [
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const user = useUserStore((state) => state.user)
+  const setUser = useUserStore((state) => state.setUser)
+
+  const hasName = typeof user?.full_name === 'string' && user.full_name.trim().length > 0
+  const shortName = hasName
+    ? user!.full_name!.trim().split(' ')[0]
+    : user?.email
+    ? user.email.split('@')[0]
+    : 'Guest'
+  const fullDisplayName = hasName ? user!.full_name!.trim() : shortName
+  const subtitle = user?.email ?? 'Complete your profile'
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    router.replace('/login')
+  }
 
   // Don't show sidebar on landing/auth pages
   if (pathname === '/' || pathname === '/login' || pathname === '/onboarding') {
@@ -160,10 +179,8 @@ export function Sidebar() {
                     exit={{ opacity: 0, width: 0 }}
                     className="flex-1 min-w-0"
                   >
-                    <p className="font-semibold text-sm truncate">Demo User</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      Freelancer
-                    </p>
+                    <p className="font-semibold text-sm truncate capitalize">{fullDisplayName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -185,7 +202,7 @@ export function Sidebar() {
                   className={cn(
                     'relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all group',
                     isActive
-                      ? 'bg-gradient-to-r from-saffron-500/20 to-sage-500/20 shadow-inner-glow'
+                      ? 'bg-theme-green/20 shadow-inner-glow'
                       : 'hover:bg-white/5',
                     isCollapsed && 'justify-center px-0'
                   )}
@@ -281,6 +298,7 @@ export function Sidebar() {
           <motion.button
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.98 }}
+            onClick={handleLogout}
             className={cn(
               'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-destructive/10 text-destructive',
               isCollapsed && 'justify-center px-0'

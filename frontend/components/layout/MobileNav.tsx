@@ -79,7 +79,7 @@ export function MobileNav() {
                 {isActive && (
                   <motion.div
                     layoutId="mobileActiveTab"
-                    className="absolute inset-0 -m-2 rounded-2xl bg-gradient-to-br from-saffron-500/20 to-sage-500/20"
+                    className="absolute inset-0 -m-2 rounded-2xl bg-theme-green/20"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}

@@ -27,13 +27,13 @@ export default function Home() {
           </h1>
 
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Built for Indians with irregular incomes — freelancers, gig workers, and influencers.
+            Built for Indians with irregular incomes - freelancers, gig workers, and influencers.
             Understand your income rhythm, get personalized advice, and achieve your financial goals.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
             <Link
-              href="/onboarding"
+              href="/login?mode=signup"
               className="group px-8 py-4 rounded-full gradient-saffron text-white font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
             >
               Get Started

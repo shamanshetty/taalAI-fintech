@@ -135,11 +135,7 @@ export function HeartbeatPulse({ data }: HeartbeatPulseProps) {
   return (
     <div className="relative">
       {/* Reversed card - lighter background */}
-      <div className="neuro-card rounded-3xl p-6 relative overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, rgba(22, 163, 74, 0.08) 0%, rgba(245, 158, 11, 0.08) 100%)',
-        }}
-      >
+      <div className="neuro-card rounded-3xl p-6 relative overflow-hidden">
         {/* Header */}
         <div className="relative z-10 mb-6">
           <div className="flex items-center justify-between">
